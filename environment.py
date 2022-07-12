@@ -72,7 +72,7 @@ class Environment:
     
     def add_target(self, x, y, sigma_x, sigma_y):
         self.xi = np.vstack((self.xi, np.array([x,y])))
-        self.u_targets = np.vstack((self.u_targets, (np.random.random((1,2))-0.5)))
+        self.u_targets = np.vstack((self.u_targets, (np.random.random((1,2))*5)))
         self.sigma_targets = np.vstack((self.sigma_targets, np.array([sigma_x, sigma_y])))
         self.n_targets += 1
         # Add position estimated to the matrix
@@ -100,20 +100,22 @@ class Environment:
         self.update_agents_command()
 
         # Update agents according to Eq(1)
-        self.hist_qi.append(self.qi)
-        self.qi += self.u_agents # * self.t Not needed since controls are motion primitives
+        if(self.n_agents > 0):
+            self.hist_qi.append(self.qi)
+            self.qi += self.u_agents # * self.t Not needed since controls are motion primitives
 
         # Update state (targets) according to Eq(2)
-        self.hist_xi.append(self.xi)
-        noise_targets = np.random.randn(self.xi.shape[0], self.xi.shape[1]) * self.sigma_targets
-        self.xi += self.u_targets * self.t + noise_targets
+        if(self.n_targets > 0):
+            self.hist_xi.append(self.xi)
+            noise_targets = np.random.randn(self.xi.shape[0], self.xi.shape[1]) * self.sigma_targets
+            self.xi += self.u_targets * self.t + noise_targets
 
-        z, R = self.get_measurements(self.qi)
-        x_est, P_est = kalman_predict(self.x_est, self.P_est, self.Q)
-        self.x_est, self.P_est  = kalman_update(x_est, z[0,:], P_est, np.diag(R[0,:])) # get uncertainity in the new configuration
-        for robot in range(1,self.n_agents):
-            self.x_est, self.P_est = kalman_update(x_est, z[robot,:], P_est , np.diag(R[robot,:])) # get uncertainity in the new configuration
-        sleep(1)
+        if(self.n_agents > 0):
+            z, R = self.get_measurements(self.qi)
+            x_est, P_est = kalman_predict(self.x_est, self.P_est, self.Q)
+            self.x_est, self.P_est  = kalman_update(x_est, z[0,:], P_est, np.diag(R[0,:])) # get uncertainity in the new configuration
+            for robot in range(1,self.n_agents):
+                self.x_est, self.P_est = kalman_update(x_est, z[robot,:], P_est , np.diag(R[robot,:])) # get uncertainity in the new configuration
 
     def update_agents_command(self):
         '''
