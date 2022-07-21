@@ -10,7 +10,7 @@ def sampling_based_active_information_acquisition(max_n, environment, delta):
     path = -1
     min_node_cost = 10000
     while path==-1:
-        print("Starting execution. Last node cost: {}".format(min_node_cost))
+        # print("Starting execution. Last node cost: {}".format(min_node_cost))
         x_est = environment.x_est
         P_est = environment.P_est
 
